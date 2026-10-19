@@ -1,5 +1,7 @@
 # Deploy and Host Keycloak with Railway
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/keycloak-26-identity-and-sso-server?referralCode=20H68q)
+
 Keycloak is an open-source identity and access management server: single sign-on, OAuth 2.0 / OpenID Connect and SAML 2.0 for your applications, with user federation, social login and multi-factor authentication. This community template runs Keycloak 26 on Railway with Postgres, an optimized server build and a generated admin password.
 
 ## About Hosting Keycloak
