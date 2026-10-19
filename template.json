@@ -1,0 +1,246 @@
+{
+  "name": "Keycloak 26 Identity and SSO Server",
+  "description": "Single sign-on, OAuth2/OIDC and SAML for your apps, backed by Postgres.",
+  "category": "Authentication",
+  "tags": [
+    "keycloak",
+    "sso",
+    "oidc",
+    "oauth2",
+    "saml",
+    "identity",
+    "iam",
+    "postgres"
+  ],
+  "image": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/keycloak.svg",
+  "upstream": {
+    "repo": "keycloak/keycloak",
+    "version": "26.8.1",
+    "checked": "2026-10-20"
+  },
+  "services": {
+    "Keycloak": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/keycloak.svg",
+      "source": {
+        "repo": "baranberkay96/keycloak-railway",
+        "rootDirectory": "/services/keycloak"
+      },
+      "startCommand": null,
+      "preDeployCommand": null,
+      "healthcheckPath": "/health/ready",
+      "healthcheckTimeout": 900,
+      "restartPolicyType": "ALWAYS",
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": true,
+      "targetPort": 8080,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "PORT": {
+          "defaultValue": "8080",
+          "description": "Port Keycloak's HTTP listener uses; Railway routes the public domain and its healthcheck here.",
+          "required": false
+        },
+        "KEYCLOAK_VERSION": {
+          "defaultValue": "26.8.1",
+          "description": "quay.io/keycloak/keycloak tag the image is built from (build argument). Change it to upgrade; back up Postgres first.",
+          "required": false
+        },
+        "KC_HOSTNAME": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+          "description": "Public base URL used in tokens (issuer) and redirects. Change it when you add a custom domain.",
+          "required": false
+        },
+        "KC_HOSTNAME_BACKCHANNEL_DYNAMIC": {
+          "defaultValue": "true",
+          "description": "Lets apps in this project call Keycloak over the private network (http://keycloak.railway.internal:8080) for token, JWKS and introspection requests.",
+          "required": false
+        },
+        "KC_PROXY_HEADERS": {
+          "defaultValue": "xforwarded",
+          "description": "Trust X-Forwarded-* headers from Railway's edge proxy, which terminates TLS.",
+          "required": false
+        },
+        "KC_HTTP_ENABLED": {
+          "defaultValue": "true",
+          "description": "Plain HTTP listener behind Railway's TLS-terminating edge.",
+          "required": false
+        },
+        "KC_HTTP_PORT": {
+          "defaultValue": "${{PORT}}",
+          "description": "HTTP port, kept equal to PORT.",
+          "required": false
+        },
+        "KC_HTTP_HOST": {
+          "defaultValue": "::",
+          "description": "Bind address. :: is dual-stack (IPv4 and IPv6), so private-network callers reach Keycloak in every Railway environment.",
+          "required": false
+        },
+        "KC_DB": {
+          "defaultValue": "postgres",
+          "description": "Database vendor. Build-time option, baked into the optimized image; keep it postgres.",
+          "required": false
+        },
+        "KC_DB_URL_HOST": {
+          "defaultValue": "${{Postgres.PGHOST}}",
+          "description": "Postgres host on the private network.",
+          "required": false
+        },
+        "KC_DB_URL_PORT": {
+          "defaultValue": "${{Postgres.PGPORT}}",
+          "description": "Postgres port.",
+          "required": false
+        },
+        "KC_DB_URL_DATABASE": {
+          "defaultValue": "${{Postgres.PGDATABASE}}",
+          "description": "Postgres database name.",
+          "required": false
+        },
+        "KC_DB_USERNAME": {
+          "defaultValue": "${{Postgres.PGUSER}}",
+          "description": "Postgres user.",
+          "required": false
+        },
+        "KC_DB_PASSWORD": {
+          "defaultValue": "${{Postgres.PGPASSWORD}}",
+          "description": "Postgres password (generated on the Postgres service).",
+          "required": false
+        },
+        "KC_DB_POOL_MAX_SIZE": {
+          "defaultValue": "20",
+          "description": "Maximum database connections per Keycloak replica (upstream default 100; Postgres allows 100 in total).",
+          "required": false
+        },
+        "KC_BOOTSTRAP_ADMIN_USERNAME": {
+          "defaultValue": "admin",
+          "description": "Username of the temporary admin created in the master realm on first start. Changing it later has no effect.",
+          "required": false
+        },
+        "KC_BOOTSTRAP_ADMIN_PASSWORD": {
+          "defaultValue": "${{secret(32)}}",
+          "description": "Password of that temporary admin (generated). Sign in with it, create a permanent admin, then delete the temporary one.",
+          "required": false
+        },
+        "KC_CACHE": {
+          "defaultValue": "local",
+          "description": "local = single-node caches (one replica). Set ispn before raising replicas so nodes form a JGroups cluster via the database (jdbc-ping).",
+          "required": false
+        },
+        "KC_LOG_LEVEL": {
+          "defaultValue": "info",
+          "description": "Root log level (e.g. info, debug, or info,org.keycloak.events:debug).",
+          "required": false
+        },
+        "JVM_HEAP_MAX_MB": {
+          "defaultValue": "1024",
+          "description": "Upper bound for the JVM heap in MB. The entrypoint uses the smaller of this, 70% of the container memory limit, and the limit minus 384 MB.",
+          "required": false
+        },
+        "JVM_HEAP_PERCENT": {
+          "defaultValue": "70",
+          "description": "Share of the container memory limit the heap may use (Keycloak's own default ratio), capped by JVM_HEAP_MAX_MB.",
+          "required": false
+        },
+        "JVM_MAX_CPUS": {
+          "defaultValue": "4",
+          "description": "CPU count reported to the JVM (sizes GC and HTTP thread pools). Lowered automatically if the container has a smaller CPU quota.",
+          "required": false
+        },
+        "DB_WAIT_SECONDS": {
+          "defaultValue": "600",
+          "description": "How long the entrypoint waits for Postgres to accept connections before starting Keycloak (0 = do not wait).",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "30",
+          "description": "Time between SIGTERM and SIGKILL on redeploys so Keycloak can shut down cleanly.",
+          "required": false
+        }
+      }
+    },
+    "Postgres": {
+      "icon": "https://devicons.railway.app/i/postgresql.svg",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18"
+      },
+      "startCommand": null,
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/var/lib/postgresql/data"
+      },
+      "variables": {
+        "PGDATA": {
+          "defaultValue": "/var/lib/postgresql/data/pgdata",
+          "description": "Location where the database will be initialized.",
+          "required": false
+        },
+        "PGHOST": {
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Railway Private Domain Name.",
+          "required": false
+        },
+        "PGPORT": {
+          "defaultValue": "5432",
+          "description": "Port to connect to Postgres.",
+          "required": false
+        },
+        "PGUSER": {
+          "defaultValue": "${{ POSTGRES_USER }}",
+          "description": "Required variable for Data panel.",
+          "required": false
+        },
+        "PGDATABASE": {
+          "defaultValue": "${{POSTGRES_DB}}",
+          "description": "Required variable for the data panel.",
+          "required": false
+        },
+        "PGPASSWORD": {
+          "defaultValue": "${{POSTGRES_PASSWORD}}",
+          "description": "Required variable for Data panel.",
+          "required": false
+        },
+        "POSTGRES_DB": {
+          "defaultValue": "railway",
+          "description": "Default database created when image is started.",
+          "required": false
+        },
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{PGUSER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{PGDATABASE}}",
+          "description": "URL to connect to Postgres database.",
+          "required": false
+        },
+        "POSTGRES_USER": {
+          "defaultValue": "postgres",
+          "description": "User to connect to Postgres DB.",
+          "required": false
+        },
+        "SSL_CERT_DAYS": {
+          "defaultValue": "820",
+          "description": "SSL certificate expiry in days.",
+          "required": false
+        },
+        "POSTGRES_PASSWORD": {
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+          "description": "Password to connect to DB.",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Allow Postgres to cleanly shut down.",
+          "required": false
+        }
+      }
+    }
+  },
+  "buckets": []
+}
